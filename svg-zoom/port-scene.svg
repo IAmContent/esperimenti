@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" onload="startup(evt)" onmousemove="mouseMove(evt)" onmouseup="mouseUp(evt)">     
+&gt;
+
+<script>
+
+<![CDATA[
+
+var clippedImage;
+var cp;
+var mycircle;
+var frame;
+var frameshade;
+var percent;
+var arrow;
+var redstop;
+var greenstop;
+var gMouseDown = 0;
+var scaleFactor = 1.0;
+var percentString ="";
+
+function startup(evt)
+{
+ clippedImage = document.getElementById("clippedI");
+ cp = document.getElementById("CP");
+ mycircle = document.getElementById("myCircle");
+ frame = document.getElementById("Frame");
+ frameshade = document.getElementById("FrameShade"); 
+ percent = document.getElementById("PercentText"); 
+ arrow = document.getElementById("ArrowToCircle"); 
+ arrow = document.getElementById("ArrowToCircle");
+ redstop = document.getElementById("RedStop");
+ greenstop = document.getElementById("GreenStop");
+}
+
+function mouseMove(evt)
+{
+  if(!gMouseDown) return;
+  var x = evt.clientX;
+  var y = evt.clientY;
+
+  mycircle.setAttributeNS(null,"cx", x);
+  mycircle.setAttributeNS(null,"cy", y);
+  frame.setAttributeNS(null,"cx", x);
+  frame.setAttributeNS(null,"cy", y);
+  frameshade.setAttributeNS(null,"cx", x);
+  frameshade.setAttributeNS(null,"cy", y);
+
+  resizeImage(x,y);
+}
+
+function mouseDown(evt)
+{
+  gMouseDown = 1;
+  modifyPercentText();
+}
+
+function mouseUp(evt)
+{
+  gMouseDown = 0;
+}
+
+function zoomIn(evt)
+{
+  scaleFactor+=1;
+  scaleFactor = parseInt(scaleFactor);
+  modifyPercentText();
+
+  var x = mycircle.getAttributeNS(null,"cx");
+  var y = mycircle.getAttributeNS(null,"cy");
+  resizeImage(x,y);
+}
+
+function zoomOut(evt)
+{
+  if(scaleFactor <= 0.5) {
+    scaleFactor = 0.5;
+    return;
+  }
+  if(scaleFactor >=2) scaleFactor-=1;
+  else scaleFactor-=0.1;
+  modifyPercentText();
+
+  var x = mycircle.getAttributeNS(null,"cx");
+  var y = mycircle.getAttributeNS(null,"cy");
+  resizeImage(x,y);
+}
+
+function resizeImage(x,y)
+{   
+  var newx = x - scaleFactor*x;
+  var newy = y - scaleFactor*y;
+
+  var tx = "translate(" + newx + "," + newy 
+             + "),scale(" + scaleFactor + "," + scaleFactor +")";
+  clippedImage.setAttribute("transform", tx);
+
+  if(arrow.getAttributeNS(null,"opacity")!==0) 
+       arrow.setAttributeNS(null,"opacity", 0); 
+}
+
+function modifyPercentText()
+{
+  var s = percentString + parseInt(scaleFactor*100) +"%";
+  percent.firstChild.nodeValue = s;
+}
+
+function mouseOverRed()
+{
+  redstop.setAttributeNS(null,"stop-color", "white"); 
+}
+
+function mouseOverGreen()
+{
+  greenstop.setAttributeNS(null,"stop-color", "white"); 
+}
+
+function mouseOutRed()
+{
+  redstop.setAttributeNS(null,"stop-color", "red"); 
+}
+
+function mouseOutGreen()
+{
+  greenstop.setAttributeNS(null,"stop-color", "green"); 
+}
+
+//]]>
+</script>
+
+
+<rect width="100%" height="100%" fill="white" onmousedown="mouseDown(evt)" onmousemove="mouseMove(evt)" onmouseup="mouseUp(evt)"/>
+
+
+<mask id="M">
+<rect width="100%" height="100%" fill="white" opacity="0.95"/>
+</mask> 
+<use xlink:href="#I" mask="url(#M)"/>
+
+<clipPath id="CP">
+  <circle id="myCircle" cx="80" cy="320" r="50"/>
+</clipPath>
+
+<g id="clippedI" onmouseup="mouseUp(evt)" onmousedown="mouseDown(evt)">     
+
+ <use xlink:href="#I" clip-path="url(#CP)" opacity="1.0"/>
+ <circle id="Frame" cx="80" cy="320" r="50" fill="none" stroke="gray" stroke-width="7"/>
+ <circle id="FrameShade" cx="80" cy="320" r="50" fill="none" stroke="white" stroke-width="1"/>
+</g>
+
+<!-- buttons -->
+<radialGradient id="RedG">
+   <stop id="RedStop" stop-color="red" offset="0"/>
+   <stop stop-color="white" offset="80%"/>
+   <stop stop-color="red" offset="100%"/>
+ </radialGradient>
+<g id="ZoomIn" onclick="zoomIn()" onmouseover="mouseOverRed()" onmouseout="mouseOutRed()">
+  <circle id="ZoomInCircle" cx="50" cy="50" r="20" fill="url(#RedG)"/>
+  <path d="M 50 40 L 50 60 M 40 50 L 60 50" fill="none" stroke="black" stroke-width="3"/>
+</g>
+
+<radialGradient id="GreenG">
+   <stop id="GreenStop" stop-color="green" offset="0"/>
+   <stop stop-color="white" offset="80%"/>
+   <stop stop-color="green" offset="100%"/>
+ </radialGradient>
+<g id="ZoomOut" onclick="zoomOut()" onmouseover="mouseOverGreen()" onmouseout="mouseOutGreen()">
+  <circle id="ZoomOutCircle" cx="100" cy="50" r="20" fill="url(#GreenG)"/>
+  <path d="M 90 50 L 110 50" fill="none" stroke="black" stroke-width="3"/>
+</g>
+
+<!-- text % -->
+<text id="PercentText" x="30" y="120" font-size="30" fill="black">
+100 % </text>
+
+<!-- arrow -->
+<g transform="translate(30,15)">
+  <path id="ArrowToCircle" d="M40 420 L 50,420 50,370 55,370 45,360                         35,370 40,370 Z" fill="red" opacity="1"/>
+</g>
+
+
+
+<!-- Tiger.svg -->
+<defs>
+<g id="I">
+ <g transform="translate(20,200)" style="fill-opacity:1; fill:none;">
+
+<image href="port-scene.jpg" width="500"/>
+
+</g>
+
+
+</g>
+</defs>
+
+</svg>
